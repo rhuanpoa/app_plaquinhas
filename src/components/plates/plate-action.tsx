@@ -10,15 +10,7 @@ interface PlateActionProps {
 }
 
 export function PlateAction({ plate, onConfigure }: PlateActionProps) {
-  if (plate.status === "available" && onConfigure) {
-    return (
-      <Button size="sm" onClick={() => onConfigure(plate)} aria-label={`Configurar placa ${plate.code}`}>
-        Configurar
-      </Button>
-    );
-  }
-
-  return (
+  const viewLink = (
     <Link
       href={getPlateDetailHref(plate.id)}
       aria-label={`Ver placa ${plate.code}`}
@@ -26,5 +18,17 @@ export function PlateAction({ plate, onConfigure }: PlateActionProps) {
     >
       Ver
     </Link>
+  );
+
+  if (plate.status !== "available" || !onConfigure) return viewLink;
+
+  // Placa disponível: "Ver" dá acesso ao QR Code para baixar e imprimir antes de configurar.
+  return (
+    <div className="flex shrink-0 items-center justify-end gap-2">
+      {viewLink}
+      <Button size="sm" onClick={() => onConfigure(plate)} aria-label={`Configurar placa ${plate.code}`}>
+        Configurar
+      </Button>
+    </div>
   );
 }
