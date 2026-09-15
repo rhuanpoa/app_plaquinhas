@@ -4,10 +4,10 @@ export const APP_NAME = "ReviewQR";
 export const QR_DOMAIN = "qr.meudominio.com";
 
 export const PLATE_CODE_PREFIX = "QR";
-export const PLATE_CODE_DIGITS = 3;
 
 export const PLATES_PER_PAGE = 8;
 export const RECENT_PLATES_LIMIT = 5;
+export const SCAN_CHART_DAYS = 30;
 
 export const DEFAULT_BATCH_SIZE = 100;
 export const MAX_BATCH_SIZE = 500;

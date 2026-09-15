@@ -7,11 +7,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/cn";
 import { Logo } from "./logo";
 import { NAV_ITEMS, isNavItemActive } from "./nav-items";
-import { useCurrentUser } from "./user-provider";
+import { useAuth } from "@/components/auth/auth-provider";
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { user, signOut } = useCurrentUser();
+  const { user, signOut } = useAuth();
 
   return (
     <aside className="sticky top-0 hidden h-dvh w-[252px] shrink-0 flex-col border-r border-line bg-surface lg:flex">

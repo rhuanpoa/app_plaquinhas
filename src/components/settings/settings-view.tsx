@@ -1,7 +1,7 @@
 "use client";
 
 import { LogOut } from "lucide-react";
-import { useCurrentUser } from "@/components/layout/user-provider";
+import { useAuth } from "@/components/auth/auth-provider";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { Card, CardTitle } from "@/components/ui/card";
@@ -12,7 +12,7 @@ import { getSystemSettings } from "@/lib/repositories/settings";
 import { AccountForm } from "./account-form";
 
 export function SettingsView() {
-  const { user, setUser, signOut } = useCurrentUser();
+  const { user, signOut } = useAuth();
   const { data: system } = useResource(getSystemSettings);
 
   return (
@@ -22,7 +22,7 @@ export function SettingsView() {
       <Card className="mb-3.5 p-[18px]">
         <CardTitle title="Informações da conta" description="Dados usados no seu acesso ao painel." />
         {user ? (
-          <AccountForm key={user.id} user={user} onSaved={setUser} />
+          <AccountForm key={user.id} user={user} />
         ) : (
           <Skeleton className="mt-4 h-[168px] w-full" />
         )}

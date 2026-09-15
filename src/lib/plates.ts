@@ -1,4 +1,4 @@
-import { PLATE_CODE_DIGITS, PLATE_CODE_PREFIX } from "@/lib/config";
+import { PLATE_CODE_PREFIX } from "@/lib/config";
 import { normalizeText } from "@/lib/format";
 import type { DailyScans, DashboardStats, Plate, PlateStatus, SelectOption, StatusFilterValue } from "@/types";
 
@@ -14,10 +14,6 @@ export const STATUS_FILTER_OPTIONS: SelectOption<StatusFilterValue>[] = [
   { value: "active", label: "Ativas" },
   { value: "disabled", label: "Desativadas" },
 ];
-
-export function formatPlateCode(sequence: number): string {
-  return PLATE_CODE_PREFIX + String(sequence).padStart(PLATE_CODE_DIGITS, "0");
-}
 
 export function parsePlateCodeSequence(code: string): number {
   const sequence = Number.parseInt(code.slice(PLATE_CODE_PREFIX.length), 10);

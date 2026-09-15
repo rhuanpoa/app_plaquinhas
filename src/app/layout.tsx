@@ -1,7 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Sans, JetBrains_Mono } from "next/font/google";
-import { AppShell } from "@/components/layout/app-shell";
-import { UserProvider } from "@/components/layout/user-provider";
+import { AuthProvider } from "@/components/auth/auth-provider";
 import { ToastProvider } from "@/components/ui/toast";
 import { APP_NAME } from "@/lib/config";
 import "./globals.css";
@@ -32,9 +31,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="pt-BR" className={`${instrumentSans.variable} ${jetbrainsMono.variable}`}>
       <body>
         <ToastProvider>
-          <UserProvider>
-            <AppShell>{children}</AppShell>
-          </UserProvider>
+          <AuthProvider>{children}</AuthProvider>
         </ToastProvider>
       </body>
     </html>

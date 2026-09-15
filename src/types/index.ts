@@ -36,7 +36,12 @@ export interface User {
   email: string;
 }
 
-export type UserUpdate = Pick<User, "name" | "email">;
+export type UserUpdate = Pick<User, "name">;
+
+export interface LoginFormValues {
+  email: string;
+  password: string;
+}
 
 export interface Scan {
   id: string;

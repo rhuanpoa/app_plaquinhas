@@ -3,7 +3,7 @@ import { cn } from "@/lib/cn";
 
 export function inputClasses(hasError = false): string {
   return cn(
-    "w-full rounded-control border bg-surface px-3 py-2.5 text-base text-ink outline-none transition-shadow placeholder:text-muted focus:border-accent focus:shadow-focus focus-visible:outline-none lg:text-sm",
+    "w-full rounded-control border bg-surface px-3 py-2.5 text-base text-ink outline-none transition-shadow placeholder:text-muted focus:border-accent focus:shadow-focus focus-visible:outline-none read-only:bg-subtle read-only:text-muted lg:text-sm",
     hasError ? "border-danger-field" : "border-line",
   );
 }

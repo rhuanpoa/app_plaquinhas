@@ -6,8 +6,9 @@ import { EmptyState } from "@/components/ui/empty-state";
 
 export default function NotFound() {
   return (
-    <Card>
-      <EmptyState
+    <div className="flex min-h-dvh items-center justify-center px-4">
+      <Card className="w-full max-w-md">
+        <EmptyState
         icon={SearchX}
         title="Página não encontrada"
         description="O endereço acessado não existe."
@@ -17,6 +18,7 @@ export default function NotFound() {
           </Link>
         }
       />
-    </Card>
+      </Card>
+    </div>
   );
 }

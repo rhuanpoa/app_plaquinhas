@@ -1,5 +1,5 @@
 import { MAX_BATCH_SIZE } from "@/lib/config";
-import type { FormErrors, PlateFormValues, UserUpdate } from "@/types";
+import type { FormErrors, LoginFormValues, PlateFormValues, UserUpdate } from "@/types";
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -23,12 +23,16 @@ export function validatePlateForm(values: PlateFormValues): FormErrors<PlateForm
   return errors;
 }
 
-export function validateAccountForm(values: UserUpdate): FormErrors<UserUpdate> {
+export function validateProfileForm(values: UserUpdate): FormErrors<UserUpdate> {
   const errors: FormErrors<UserUpdate> = {};
-
   if (!values.name.trim()) errors.name = "Informe seu nome.";
-  if (!EMAIL_PATTERN.test(values.email.trim())) errors.email = "Informe um e-mail válido.";
+  return errors;
+}
 
+export function validateLoginForm(values: LoginFormValues): FormErrors<LoginFormValues> {
+  const errors: FormErrors<LoginFormValues> = {};
+  if (!EMAIL_PATTERN.test(values.email.trim())) errors.email = "Informe um e-mail válido.";
+  if (!values.password) errors.password = "Informe sua senha.";
   return errors;
 }
 

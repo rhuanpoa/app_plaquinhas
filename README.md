@@ -2,7 +2,29 @@
 
 Painel para gerenciar placas com QR Code de avaliação do Google.
 
-MVP apenas com frontend: os dados são mockados e ficam salvos no navegador (`localStorage`).
+Site estático (GitHub Pages) com banco de dados e login no Supabase.
+
+## Configurar o Supabase
+
+1. No **SQL Editor**, rode o arquivo [`supabase/schema.sql`](supabase/schema.sql).
+2. Em **Authentication → Sign In / Providers → Email**: deixe Email ativado e desligue **Confirm email**.
+3. Em **Authentication → Users → Add user → Create new user**, crie sua conta (e-mail e senha, marcando **Auto Confirm User**).
+4. Deixe **Allow new users to sign up** desligado. As regras do banco liberam os dados para qualquer usuário logado, então só a sua conta deve existir.
+
+Nenhum e-mail é enviado pelo app. Para trocar a senha, use o painel do Supabase.
+
+## Variáveis de ambiente
+
+Crie um arquivo `.env.local` na raiz (não vai para o git):
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://<projeto>.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
+```
+
+Use apenas a chave **publicável**. Nunca coloque a `service_role`/secret key no site.
+
+No GitHub, cadastre as mesmas duas em **Settings → Secrets and variables → Actions → Variables**.
 
 ## Rodar localmente
 

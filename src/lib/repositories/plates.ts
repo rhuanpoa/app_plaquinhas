@@ -1,86 +1,93 @@
 /**
- * Acesso aos dados das placas. Hoje usa dados mockados; ao integrar o Supabase,
- * basta reimplementar estas funções mantendo as mesmas assinaturas.
+ * Acesso às placas no Supabase. As telas usam apenas estas funções.
  */
-import { buildMockPlates } from "@/data/mock/plates";
-import { formatPlateCode, parsePlateCodeSequence, sortPlatesByCode } from "@/lib/plates";
+import { sortPlatesByCode } from "@/lib/plates";
+import { getSupabase } from "@/lib/supabase/client";
 import type { Plate, PlateUpdate } from "@/types";
-import { readStored, simulateLatency, writeStored } from "./mock-store";
+import type { Database } from "@/types/database";
 
-const STORAGE_KEY = "reviewqr:v1:plates";
-const LAST_SEQUENCE_KEY = "reviewqr:v1:last-plate-sequence";
+type PlateRow = Database["public"]["Tables"]["plates"]["Row"];
+type PlateRowUpdate = Database["public"]["Tables"]["plates"]["Update"];
 
-function loadPlates(): Plate[] {
-  return readStored(STORAGE_KEY, () => buildMockPlates());
+const PLATE_COLUMNS = "id, code, client_name, destination_url, status, created_at, updated_at, scans(count)";
+
+// Limite de linhas por requisição da API do Supabase.
+const FETCH_PAGE_SIZE = 1000;
+
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function toPlate(row: PlateRow, scans = 0): Plate {
+  return {
+    id: row.id,
+    code: row.code,
+    clientName: row.client_name,
+    destinationUrl: row.destination_url,
+    status: row.status,
+    scans,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
 }
 
-function savePlates(plates: Plate[]): void {
-  writeStored(STORAGE_KEY, plates);
-}
-
-/**
- * Maior sequência já emitida, incluindo placas excluídas. Códigos nunca são
- * reutilizados: uma placa impressa com um código excluído não pode apontar para outro cliente.
- */
-function getHighestSequence(plates: Plate[]): number {
-  return plates.reduce(
-    (max, plate) => Math.max(max, parsePlateCodeSequence(plate.code)),
-    readStored(LAST_SEQUENCE_KEY, () => 0),
-  );
+function toPlateWithScans(row: PlateRow & { scans: { count: number }[] }): Plate {
+  return toPlate(row, row.scans[0]?.count ?? 0);
 }
 
 export async function getPlates(): Promise<Plate[]> {
-  await simulateLatency();
-  return sortPlatesByCode(loadPlates());
+  const supabase = getSupabase();
+  const plates: Plate[] = [];
+
+  for (let from = 0; ; from += FETCH_PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from("plates")
+      .select(PLATE_COLUMNS)
+      .order("created_at")
+      .order("code")
+      .range(from, from + FETCH_PAGE_SIZE - 1);
+
+    if (error) throw new Error("Não foi possível carregar as placas.");
+    plates.push(...data.map(toPlateWithScans));
+    if (data.length < FETCH_PAGE_SIZE) break;
+  }
+
+  return sortPlatesByCode(plates);
 }
 
 export async function getPlateById(id: string): Promise<Plate | null> {
-  await simulateLatency(250);
-  return loadPlates().find((plate) => plate.id === id) ?? null;
+  if (!UUID_PATTERN.test(id)) return null;
+
+  const { data, error } = await getSupabase().from("plates").select(PLATE_COLUMNS).eq("id", id).maybeSingle();
+  if (error) throw new Error("Não foi possível carregar a placa.");
+  return data ? toPlateWithScans(data) : null;
 }
 
-/** Cria placas disponíveis com códigos sequenciais, continuando do maior código já emitido. */
+/** Cria placas disponíveis. Os códigos vêm de uma sequência do banco e nunca se repetem. */
 export async function createPlates(quantity: number): Promise<Plate[]> {
-  await simulateLatency(800);
-  const plates = loadPlates();
-  const lastSequence = getHighestSequence(plates);
-  const now = new Date().toISOString();
+  const { data, error } = await getSupabase().rpc("create_plates", { quantity });
+  if (error) throw new Error("Não foi possível gerar as placas.");
+  return sortPlatesByCode(data.map((row) => toPlate(row)));
+}
 
-  const created: Plate[] = Array.from({ length: quantity }, (_, index) => {
-    const code = formatPlateCode(lastSequence + index + 1);
-    return {
-      id: code.toLowerCase(),
-      code,
-      clientName: null,
-      destinationUrl: null,
-      status: "available",
-      scans: 0,
-      createdAt: now,
-      updatedAt: now,
-    };
-  });
+export async function updatePlate(id: string, changes: PlateUpdate): Promise<Plate> {
+  const update: PlateRowUpdate = {};
+  if (changes.clientName !== undefined) update.client_name = changes.clientName;
+  if (changes.destinationUrl !== undefined) update.destination_url = changes.destinationUrl;
+  if (changes.status !== undefined) update.status = changes.status;
 
-  savePlates([...plates, ...created]);
-  writeStored(LAST_SEQUENCE_KEY, lastSequence + quantity);
-  return created;
+  const { data, error } = await getSupabase()
+    .from("plates")
+    .update(update)
+    .eq("id", id)
+    .select(PLATE_COLUMNS)
+    .maybeSingle();
+
+  if (error) throw new Error("Não foi possível salvar a placa.");
+  if (!data) throw new Error("Placa não encontrada.");
+  return toPlateWithScans(data);
 }
 
 export async function deletePlate(id: string): Promise<void> {
-  await simulateLatency(500);
-  const plates = loadPlates();
-  if (!plates.some((plate) => plate.id === id)) throw new Error("Placa não encontrada.");
-
-  writeStored(LAST_SEQUENCE_KEY, getHighestSequence(plates));
-  savePlates(plates.filter((plate) => plate.id !== id));
-}
-
-export async function updatePlate(id: string, data: PlateUpdate): Promise<Plate> {
-  await simulateLatency(600);
-  const plates = loadPlates();
-  const current = plates.find((plate) => plate.id === id);
-  if (!current) throw new Error("Placa não encontrada.");
-
-  const updated: Plate = { ...current, ...data, updatedAt: new Date().toISOString() };
-  savePlates(plates.map((plate) => (plate.id === id ? updated : plate)));
-  return updated;
+  const { error, count } = await getSupabase().from("plates").delete({ count: "exact" }).eq("id", id);
+  if (error) throw new Error("Não foi possível excluir a placa.");
+  if (count === 0) throw new Error("Placa não encontrada.");
 }

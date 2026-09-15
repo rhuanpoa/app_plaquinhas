@@ -1,25 +1,22 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useAuth } from "@/components/auth/auth-provider";
 import { Button } from "@/components/ui/button";
 import { TextField } from "@/components/ui/text-field";
 import { useToast } from "@/components/ui/toast";
-import { updateCurrentUser } from "@/lib/repositories/users";
-import { hasErrors, validateAccountForm } from "@/lib/validation";
-import type { User, UserUpdate } from "@/types";
+import { updateProfileName } from "@/lib/repositories/auth";
+import { hasErrors, validateProfileForm } from "@/lib/validation";
+import type { User } from "@/types";
 
-interface AccountFormProps {
-  user: User;
-  onSaved: (user: User) => void;
-}
-
-export function AccountForm({ user, onSaved }: AccountFormProps) {
+export function AccountForm({ user }: { user: User }) {
   const toast = useToast();
-  const [values, setValues] = useState<UserUpdate>({ name: user.name, email: user.email });
+  const { setUser } = useAuth();
+  const [name, setName] = useState(user.name);
   const [submitted, setSubmitted] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const errors = validateAccountForm(values);
+  const errors = validateProfileForm({ name });
   const visibleErrors = submitted ? errors : {};
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -29,7 +26,7 @@ export function AccountForm({ user, onSaved }: AccountFormProps) {
 
     setSaving(true);
     try {
-      onSaved(await updateCurrentUser(values));
+      setUser(await updateProfileName(name));
       toast("Alterações salvas.");
     } catch {
       toast("Não foi possível salvar. Tente novamente.", "error");
@@ -43,17 +40,17 @@ export function AccountForm({ user, onSaved }: AccountFormProps) {
       <TextField
         label="Nome"
         autoComplete="name"
-        value={values.name}
-        onChange={(event) => setValues((current) => ({ ...current, name: event.target.value }))}
+        value={name}
+        onChange={(event) => setName(event.target.value)}
         error={visibleErrors.name}
       />
+      {/* Trocar o e-mail pelo Supabase dispara e-mail de confirmação, então fica só leitura. */}
       <TextField
         label="E-mail"
         type="email"
-        autoComplete="email"
-        value={values.email}
-        onChange={(event) => setValues((current) => ({ ...current, email: event.target.value }))}
-        error={visibleErrors.email}
+        value={user.email}
+        readOnly
+        hint="O e-mail de acesso não pode ser alterado pelo painel."
         className="mt-3.5"
       />
       <div className="mt-4 flex justify-end">
