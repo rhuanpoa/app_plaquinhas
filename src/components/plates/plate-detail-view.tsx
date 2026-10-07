@@ -11,7 +11,7 @@ import { StatusBadge } from "@/components/ui/status-badge";
 import { useToast } from "@/components/ui/toast";
 import { useResource } from "@/hooks/use-resource";
 import { copyText } from "@/lib/clipboard";
-import { downloadQrPng, getPlateQrUrl } from "@/lib/qr";
+import { downloadQrCode, getPlateQrUrl, type QrFormat } from "@/lib/qr";
 import { deletePlate, getPlateById, updatePlate } from "@/lib/repositories/plates";
 import type { Plate, PlateFormMode, PlateStatus } from "@/types";
 import { PlateDetailSkeleton } from "./plate-detail-skeleton";
@@ -60,10 +60,10 @@ export function PlateDetailView() {
     }
   };
 
-  const handleDownload = async () => {
+  const handleDownload = async (format: QrFormat) => {
     try {
-      await downloadQrPng(plate.code);
-      toast("Download do QR Code iniciado.");
+      await downloadQrCode(plate.code, format);
+      toast(`Download do QR Code em ${format.toUpperCase()} iniciado.`);
     } catch {
       toast("Não foi possível baixar o QR Code.", "error");
     }
@@ -196,7 +196,7 @@ export function PlateDetailView() {
         code={plate.code}
         open={lightboxOpen}
         onClose={() => setLightboxOpen(false)}
-        onDownload={handleDownload}
+        onDownload={() => handleDownload("png")}
       />
     </div>
   );

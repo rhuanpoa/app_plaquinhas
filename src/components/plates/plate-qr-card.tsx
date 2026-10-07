@@ -2,12 +2,12 @@ import { Copy, Download, Maximize2 } from "lucide-react";
 import { QRCodeImage } from "@/components/shared/qr-code-image";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { getPlateQrUrl } from "@/lib/qr";
+import { getPlateQrUrl, type QrFormat } from "@/lib/qr";
 
 interface PlateQrCardProps {
   code: string;
   onCopy: () => void;
-  onDownload: () => void;
+  onDownload: (format: QrFormat) => void;
   onExpand: () => void;
 }
 
@@ -40,8 +40,11 @@ export function PlateQrCard({ code, onCopy, onDownload, onExpand }: PlateQrCardP
         <Button variant="secondary" icon={Copy} className="flex-[1_1_130px]" onClick={onCopy}>
           Copiar URL
         </Button>
-        <Button variant="secondary" icon={Download} className="flex-[1_1_130px]" onClick={onDownload}>
-          Baixar QR Code
+        <Button variant="secondary" icon={Download} className="flex-[1_1_110px]" onClick={() => onDownload("png")}>
+          Baixar PNG
+        </Button>
+        <Button variant="secondary" icon={Download} className="flex-[1_1_110px]" onClick={() => onDownload("svg")}>
+          Baixar SVG
         </Button>
       </div>
     </Card>

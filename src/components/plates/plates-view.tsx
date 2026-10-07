@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, QrCode, SearchX } from "lucide-react";
+import { Download, Plus, QrCode, SearchX } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/shared/page-header";
@@ -14,6 +14,7 @@ import { PLATES_PER_PAGE } from "@/lib/config";
 import { filterPlates, getPlateDetailHref } from "@/lib/plates";
 import { getPlates } from "@/lib/repositories/plates";
 import type { Plate, StatusFilterValue } from "@/types";
+import { DownloadQrCodesModal } from "./download-qr-codes-modal";
 import { GeneratePlatesModal } from "./generate-plates-modal";
 import { Pagination } from "./pagination";
 import { PlateAction } from "./plate-action";
@@ -31,6 +32,7 @@ export function PlatesView() {
   const [statusFilter, setStatusFilter] = useState<StatusFilterValue>("all");
   const [page, setPage] = useState(1);
   const [generateOpen, setGenerateOpen] = useState(false);
+  const [downloadOpen, setDownloadOpen] = useState(false);
   const [plateToConfigure, setPlateToConfigure] = useState<Plate | null>(null);
 
   const filtered = useMemo(() => filterPlates(plates ?? [], search, statusFilter), [plates, search, statusFilter]);
@@ -118,9 +120,19 @@ export function PlatesView() {
         title="Placas"
         subtitle="Gerencie suas placas e QR Codes"
         actions={
-          <Button icon={Plus} onClick={() => setGenerateOpen(true)}>
-            Gerar placas
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="secondary"
+              icon={Download}
+              onClick={() => setDownloadOpen(true)}
+              disabled={filtered.length === 0}
+            >
+              Baixar QR Codes
+            </Button>
+            <Button icon={Plus} onClick={() => setGenerateOpen(true)}>
+              Gerar placas
+            </Button>
+          </div>
         }
       />
 
@@ -143,6 +155,7 @@ export function PlatesView() {
         onGenerated={() => reload()}
         onViewPlates={showCreatedPlates}
       />
+      <DownloadQrCodesModal open={downloadOpen} onClose={() => setDownloadOpen(false)} plates={filtered} />
       <PlateFormModal
         plate={plateToConfigure}
         mode="configure"
