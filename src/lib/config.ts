@@ -1,7 +1,7 @@
 export const APP_NAME = "ReviewQR";
 
 /** Domínio usado nas URLs impressas nos QR Codes. */
-export const QR_DOMAIN = "qr.meudominio.com";
+export const QR_DOMAIN = "qr.rwcompany.com.br";
 
 export const PLATE_CODE_PREFIX = "QR";
 

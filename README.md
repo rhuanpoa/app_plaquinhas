@@ -51,6 +51,23 @@ O resultado fica na pasta `out/`.
 
 Se o repositório se chamar `<usuario>.github.io`, o site fica na raiz. Nesse caso, remova a variável `NEXT_PUBLIC_BASE_PATH` do workflow.
 
+## Redirecionamento dos QR Codes (Cloudflare Worker)
+
+O QR impresso aponta para `https://qr.rwcompany.com.br/q/<código>`. Quem redireciona é o
+Worker em [`worker/qr-redirect.js`](worker/qr-redirect.js).
+
+1. No Supabase, rode [`supabase/redirect.sql`](supabase/redirect.sql) no SQL Editor.
+2. Na Cloudflare, em **Workers & Pages → Create → Worker**, crie um Worker chamado `qr-redirect`
+   e cole o conteúdo de `worker/qr-redirect.js`. Salve e publique.
+3. Em **Settings → Variables and Secrets**, adicione:
+   - `SUPABASE_URL` = `https://pnpmdjrbhwettprsxpia.supabase.co`
+   - `SUPABASE_PUBLISHABLE_KEY` = a chave publicável do projeto
+4. Em **Settings → Domains & Routes → Add → Custom domain**, use `qr.rwcompany.com.br`.
+   A Cloudflare cria o DNS sozinha.
+5. Teste `https://qr.rwcompany.com.br/q/QR001` com uma placa ativa.
+
+O código do QR é permanente: ao trocar o link do cliente, muda só o destino no painel.
+
 ## Observações
 
 - `scripts/flatten-rsc-segments.mjs` roda após o build e cria arquivos de navegação com os nomes que o navegador pede; sem ele o GitHub Pages responde 404 ao trocar de página.
