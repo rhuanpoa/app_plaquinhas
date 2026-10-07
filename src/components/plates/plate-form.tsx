@@ -1,12 +1,13 @@
 "use client";
 
-import { useId, useRef, useState, type ChangeEvent, type FormEvent } from "react";
+import { useId, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import { QRCodeImage } from "@/components/shared/qr-code-image";
 import { QrUrlText } from "@/components/shared/qr-url-text";
 import { Button } from "@/components/ui/button";
 import { SegmentedControl } from "@/components/ui/segmented-control";
 import { TextField } from "@/components/ui/text-field";
 import { useToast } from "@/components/ui/toast";
+import { normalizeGoogleReviewUrl } from "@/lib/google-review-url";
 import { PLATE_STATUS_LABEL } from "@/lib/plates";
 import { updatePlate } from "@/lib/repositories/plates";
 import { hasErrors, validatePlateForm } from "@/lib/validation";
@@ -40,6 +41,7 @@ export function PlateForm({ plate, mode, onCancel, onSaved }: PlateFormProps) {
 
   const errors = validatePlateForm(values);
   const visibleErrors = submitted ? errors : {};
+  const destination = useMemo(() => normalizeGoogleReviewUrl(values.destinationUrl), [values.destinationUrl]);
 
   function handleChange(field: keyof PlateFormValues) {
     return (event: ChangeEvent<HTMLInputElement>) => setValues((current) => ({ ...current, [field]: event.target.value }));
@@ -60,7 +62,7 @@ export function PlateForm({ plate, mode, onCancel, onSaved }: PlateFormProps) {
     try {
       const updated = await updatePlate(plate.id, {
         clientName: values.clientName.trim(),
-        destinationUrl: values.destinationUrl.trim(),
+        destinationUrl: destination?.url ?? values.destinationUrl.trim(),
         status: mode === "configure" ? "active" : status,
       });
       onSaved(updated);
@@ -98,13 +100,20 @@ export function PlateForm({ plate, mode, onCancel, onSaved }: PlateFormProps) {
         type="url"
         inputMode="url"
         autoComplete="url"
-        placeholder="https://g.page/r/..."
+        placeholder="Cole o link do Google Maps da empresa"
         value={values.destinationUrl}
         onChange={handleChange("destinationUrl")}
         error={visibleErrors.destinationUrl}
-        hint="Esse é o endereço para onde o usuário será direcionado ao escanear o QR Code."
+        hint="Pode colar o endereço da empresa no Google Maps: ele é convertido no link de avaliação."
         className="mt-4"
       />
+
+      {destination?.convertedFromMaps && (
+        <p className="mt-2 rounded-control border border-success-line bg-success-bg px-3 py-2.5 text-[12.5px] text-success">
+          Vamos salvar o link direto de avaliação:
+          <span className="mt-1 block break-all font-mono">{destination.url}</span>
+        </p>
+      )}
 
       {mode === "edit" && (
         <div className="mt-4">
