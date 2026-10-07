@@ -47,9 +47,13 @@ O resultado fica na pasta `out/`.
 
 1. Envie o projeto para um repositório no GitHub, na branch `main`.
 2. No repositório, abra **Settings → Pages** e, em **Source**, escolha **GitHub Actions**.
-3. A cada push na `main`, o workflow `.github/workflows/deploy.yml` publica o site em `https://<usuario>.github.io/<repositorio>/`.
+3. A cada push na `main`, o workflow `.github/workflows/deploy.yml` publica o site.
 
-Se o repositório se chamar `<usuario>.github.io`, o site fica na raiz. Nesse caso, remova a variável `NEXT_PUBLIC_BASE_PATH` do workflow.
+O painel usa domínio próprio: **https://painel.rwcompany.com.br**, definido em `public/CNAME`
+e em Settings → Pages → Custom domain. Na Cloudflare, o DNS é um CNAME `painel` apontando
+para `rhuanpoa.github.io`, em modo **DNS only** (nuvem cinza), para o GitHub emitir o certificado.
+
+Para publicar numa subpasta (`github.io/<repositorio>`), defina `NEXT_PUBLIC_BASE_PATH` no workflow.
 
 ## Redirecionamento dos QR Codes (Cloudflare Worker)
 
